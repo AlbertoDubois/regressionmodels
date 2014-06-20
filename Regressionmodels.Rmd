@@ -1,0 +1,67 @@
+---
+title: "Regression Models Project"
+output: word_document
+---
+
+# Executive Summary
+Motor Trend, a magazine about the automobile industry is interested in exploring the relationship between a set of variables and miles per gallon (MPG). They are particularly interested in the following two questions:
+
+- Is an automatic or manual transmission better for MPG
+- Quantifying how different is the MPG between automatic and manual transmissions?
+
+We will do first some exploratory analysis and then come up with a model to answer this questions. An analysis of th residuals and errors will be also developed.
+
+# Is an automatic or manual transmission better for MPG
+We are going to check hoy the mpg varies for the manual and automatic transmission. For that the boxplot is very useful:
+
+```{r boxplot}
+data=mtcars
+boxplot(data$mpg~data$am,main="MPG per transmission type",xlab="Transmission type",ylab="MPG",col=terrain.colors(2))
+legend("topleft",inset=0.05,title="Tranmission type",c("Manual","Automatic"),fill=terrain.colors(2))
+```
+
+As we can see, the median and at least 50% of the points for each type lie separate, so we can say that manual transmission has less MPG than automatic in general. This is enough to answer the question for a generic car. This result makes sense because automatic transmission is designed not only to make life easier for the driver but also to improve the efficiency of the driving.
+
+# Quantifying how different is the MPG between automatic and manual transmissions?
+Let's try to build a linear regression model to check how much mpg in average has each type of transmission. After some explatory analysis and backward feature selection we selected the following linear model:
+```{r exploratory, results='hide'}
+#Results shown in appendix
+#pairs(~mpg+qsec+wt+am,data)
+```
+```{r model,results='hide'}
+#Backward feature selection. Hide the results because of the 2-page limit
+model = step(lm(mpg~.,data),direction = "backward")
+```
+The features selected are and the confidence intervals for the model parameters are:
+```{r features}
+model$coefficient
+confint(model,"am",level = 0.95)
+```
+The residuals are:
+```{r residuals,results='hide'}
+#Result shown in appendix due to space requirements
+#plot(predict(model),resid(model))
+#abline(h=mean(resid(model)),col="red")
+```
+The residuals are unbiased and homoscedastic (see appendix).
+
+In conlcusion: changing from manual to automatic increases the MPG in average 2.936 mpg, being therefore a more efficient transmission. One drawback is that because "am" is a binary variable the lm doesnt regress very good, being then necessary to include more variables. One effect is the loss in significance but a higher R^2.
+
+#Appendix
+## Exploratory analysis:
+```{r}
+#Check linearity in variables that we want to use
+pairs(~mpg+qsec+wt+am,data)
+```
+## Summary of the model selection and model selected:
+```{r}
+#Step by step computation and selection of features
+step(lm(mpg~.,data),direction = "backward")
+#Summary of the model selected (higher R^2 but am not tht significant)
+summary(model)
+```
+## Analysis of the residuals:
+```{r residuals2}
+par(mfrow=c(2,2))
+plot(model)
+```
